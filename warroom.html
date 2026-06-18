@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wolfshire War Room</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+
+:root {
+  --void: #080604;
+  --smoke: #111009;
+  --ember: #c8621a;
+  --ember-dim: #7a3a0e;
+  --gold: #d4a843;
+  --gold-dim: #8a6e2a;
+  --ash: #7a6e5e;
+  --parchment: #e8dcc8;
+  --parchment-dim: #9a8e7a;
+  --gemini-blue: #4a9eff;
+  --gemini-dim: #1a4a8a;
+  --panel-bg: #0d0b08;
+  --border: rgba(212,168,67,0.2);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--void);
+  color: var(--parchment);
+  font-family: 'Crimson Pro', Georgia, serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: default;
+}
+
+/* HEADER */
+.header {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  background: rgba(8,6,4,0.95);
+}
+
+.header-left { display: flex; flex-direction: column; gap: 2px; }
+
+.title {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-size: 10px;
+  color: var(--ash);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.clock {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  min-width: 80px;
+  text-align: right;
+}
+
+.clock-date {
+  font-size: 9px;
+  color: var(--ash);
+  letter-spacing: 2px;
+  text-align: right;
+  margin-top: 2px;
+}
+
+.agents {
+  display: flex;
+  gap: 12px;
+}
+
+.agent {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.dot.brian { background: var(--gold); animation: pulse 3s infinite; }
+.dot.claude { background: var(--ember); animation: pulse 3s infinite 1s; }
+.dot.gemini { background: var(--gemini-blue); animation: pulse 3s infinite 2s; }
+
+@keyframes pulse {
+  0%,100% { opacity:1; transform: scale(1); }
+  50% { opacity:0.4; transform: scale(0.8); }
+}
+
+/* SPINE STATUS */
+.spine-bar {
+  padding: 5px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  background: rgba(20,15,8,0.9);
+}
+
+.spine-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+}
+
+.spine-status {
+  font-size: 11px;
+  color: var(--ash);
+  font-style: italic;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spine-count {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  color: var(--gold-dim);
+  letter-spacing: 1px;
+}
+
+/* MAIN */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  overflow: hidden;
+  gap: 1px;
+  background: var(--border);
+}
+
+.panel {
+  background: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.panel-name {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.panel.claude .panel-name { color: var(--ember); }
+.panel.gemini .panel-name { color: var(--gemini-blue); }
+
+.panel-role {
+  font-size: 9px;
+  color: var(--ash);
+  letter-spacing: 1px;
+}
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 10px;
+  opacity: 0.2;
+}
+
+.empty-glyph {
+  font-family: 'Cinzel', serif;
+  font-size: 28px;
+  color: var(--gold);
+}
+
+.empty-text {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.message { animation: fadeIn 0.25s ease; }
+
+@keyframes fadeIn {
+  from { opacity:0; transform: translateY(6px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+.msg-meta {
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.msg-meta .name { font-weight: 600; }
+.msg-meta .time { opacity: 0.5; }
+
+.message.from-brian .msg-meta .name { color: var(--gold); }
+.message.from-claude .msg-meta .name { color: var(--ember); }
+.message.from-gemini .msg-meta .name { color: var(--gemini-blue); }
+.message.from-error .msg-meta .name { color: #ff6060; }
+
+.msg-body {
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--parchment);
+  padding: 9px 12px;
+  border-left: 2px solid transparent;
+  background: rgba(255,255,255,0.025);
+}
+
+.message.from-brian .msg-body { border-left-color: rgba(212,168,67,0.4); }
+.message.from-claude .msg-body { border-left-color: rgba(200,98,26,0.5); }
+.message.from-gemini .msg-body { border-left-color: rgba(74,158,255,0.45); }
+.message.from-error .msg-body { border-left-color: rgba(255,96,96,0.4); color: #ff9090; font-size: 12px; }
+
+.thinking {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 11px;
+  color: var(--ash);
+  font-style: italic;
+  flex-shrink: 0;
+}
+
+.thinking.active { display: flex; }
+
+.tdots span {
+  display: inline-block;
+  width: 3px; height: 3px;
+  background: currentColor;
+  border-radius: 50%;
+  margin: 0 1px;
+  animation: bounce 1s infinite;
+}
+.tdots span:nth-child(2) { animation-delay: 0.15s; }
+.tdots span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes bounce {
+  0%,80%,100% { transform: translateY(0); }
+  40% { transform: translateY(-5px); }
+}
+
+/* INPUT */
+.input-zone {
+  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  background: rgba(8,6,4,0.98);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.input-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 4px;
+}
+
+textarea {
+  flex: 1;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(212,168,67,0.2);
+  color: var(--parchment);
+  font-family: 'Crimson Pro', serif;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 10px 14px;
+  resize: none;
+  outline: none;
+  transition: border-color 0.2s;
+  min-height: 44px;
+  max-height: 100px;
+}
+
+textarea:focus { border-color: rgba(212,168,67,0.5); }
+textarea::placeholder { color: rgba(122,110,94,0.5); font-style: italic; }
+
+.btn-row { display: flex; gap: 8px; }
+
+.btn {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  padding: 10px 18px;
+  transition: all 0.15s;
+}
+
+.btn-transmit {
+  background: linear-gradient(135deg, var(--ember), #9a4a0e);
+  color: var(--parchment);
+}
+
+.btn-transmit:hover { background: linear-gradient(135deg, #d97020, var(--ember)); }
+.btn-transmit:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.btn-spine {
+  background: rgba(212,168,67,0.1);
+  color: var(--gold-dim);
+  border: 1px solid rgba(212,168,67,0.2);
+  font-size: 8px;
+}
+
+.btn-spine:hover { background: rgba(212,168,67,0.15); color: var(--gold); }
+
+.error-banner {
+  display: none;
+  background: rgba(200,50,50,0.15);
+  border: 1px solid rgba(200,50,50,0.3);
+  color: #ff8080;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.error-banner.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="title">Wolfshire War Room</div>
+    <div class="subtitle">Three-Voice Command Council · The Turning of the Sword</div>
+  </div>
+  <div class="header-right">
+    <div>
+      <div class="clock" id="clock">--:--:--</div>
+      <div class="clock-date" id="clock-date">-- --- ----</div>
+    </div>
+    <div class="agents">
+      <div class="agent"><div class="dot brian"></div> B-Rave</div>
+      <div class="agent"><div class="dot claude"></div> Claude</div>
+      <div class="agent"><div class="dot gemini"></div> Gemini</div>
+    </div>
+  </div>
+</div>
+
+<div class="spine-bar">
+  <div class="spine-label">Living Spine</div>
+  <div class="spine-status" id="spine-status">Loading session memory...</div>
+  <div class="spine-count" id="spine-count"></div>
+</div>
+
+<div class="main">
+  <div class="panel claude">
+    <div class="panel-header">
+      <div class="panel-name"><div class="dot claude"></div> Claude</div>
+      <div class="panel-role">Architect · Strategy · World</div>
+    </div>
+    <div class="messages" id="claude-msgs">
+      <div class="empty">
+        <div class="empty-glyph">⚔</div>
+        <div class="empty-text">Awaiting Command</div>
+      </div>
+    </div>
+    <div class="thinking" id="claude-thinking">
+      <div class="tdots"><span></span><span></span><span></span></div>
+      Claude is thinking...
+    </div>
+  </div>
+
+  <div class="panel gemini">
+    <div class="panel-header">
+      <div class="panel-name"><div class="dot gemini"></div> Gemini</div>
+      <div class="panel-role">Engine · Research · Data</div>
+    </div>
+    <div class="messages" id="gemini-msgs">
+      <div class="empty">
+        <div class="empty-glyph">✦</div>
+        <div class="empty-text">Awaiting Command</div>
+      </div>
+    </div>
+    <div class="thinking" id="gemini-thinking">
+      <div class="tdots"><span></span><span></span><span></span></div>
+      Gemini is thinking...
+    </div>
+  </div>
+</div>
+
+<div class="input-zone">
+  <div class="input-label">B-Rave — Command</div>
+  <div class="input-row">
+    <textarea id="input" placeholder="Speak your command. Both AIs will respond..." rows="2"></textarea>
+    <div class="btn-row">
+      <button class="btn btn-spine" onclick="viewSpine()">Spine</button>
+      <button class="btn btn-transmit" id="send-btn" onclick="transmit()">Transmit</button>
+    </div>
+  </div>
+  <div class="error-banner" id="error-banner"></div>
+</div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const SUPABASE_URL = 'https://xfyungrugleovcbypwqx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmeXVuZ3J1Z2xlb3ZjYnlwd3F4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTk2MTUsImV4cCI6MjA5MTc3NTYxNX0.otXF0QJEb6S7MtXDWrNgwMv3VpK95LqB_f9x3pjUoEM';
+const GEMINI_KEY = 'AIzaSyADNLrOjGp3nwAw3vuGq5c7QmqnHUPFPDI';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+const CLAUDE_URL = '/.netlify/functions/claude';
+
+// ── STATE ───────────────────────────────────────────────
+let claudeHistory = [];
+let geminiHistory = [];
+let exchangeCount = 0;
+let spineLoaded = false;
+
+// ── WOLFSHIRE CONTEXT ───────────────────────────────────
+const WOLFSHIRE_CONTEXT = `
+WOLFSHIRE CHRONICLES — LIVING SPINE CONTEXT (April 2026)
+
+AUTHOR: B-Rave (Brian Cowie) — indie fantasy author, dairy farmer, Canterbury NZ
+BOOK: "Othila: The Turning of the Sword" — ASIN B0GCC4M4TK — Published Dec 22 2024
+SERIES: The Wolfshire Chronicles — 8 books planned
+PLATFORM: KDP Select / Kindle Unlimited
+COMPANY: The Turning of the Sword Limited (registered April 2026, NZ)
+WEBSITE: theturningofthesword.com
+EMAIL: theturningofthesword@gmail.com
+
+CAMPAIGN STATUS (April 15 2026):
+- Amazon reviews: 2 (critical bottleneck)
+- NetGalley: 38 downloads, Featured Title window April 13-19
+- 6 reviewer outreach emails sent today to top engagers
+- Amazon Sponsored Brands video campaign running — $1.46 CPC, out of budget at $10/day
+- TikTok: Bob the Rock Troll reel 450K+ views — business account pending (company reg in queue)
+- Instagram: converting well from boosts
+- KENP reads accumulating
+
+KEY CHARACTERS:
+- Liam: farm boy protagonist, awakens ancient sword, Teos swordsman (short sword + bow)
+- Elysia Vire: young War Priestess of Brigid, co-hero
+- Elara: Liam's adoptive mother, Teos archer (katana sidearm + longbow primary), mother of 4
+- Finwick: sealed dragon king of Jotunheim (comic relief, massive power)
+- Mira: firstborn dragon rider, long-arc Valkyrie leader
+- Wyrns: biomechanical dragons — obsidian scales, Wyrnglass wings, sonic kill ability
+
+TEOS MARTIAL CULTURE: All carry katanas. Archers (like Elara) = katana sidearm + bow primary. Swordsmen (like Liam) = short sword primary + bow secondary.
+
+PRODUCTION COUNCIL: Claude (strategy/architecture), Gemini (research/image), Grok (video/voice), Suno (music), DaVinci Resolve (assembly)
+
+GOAL: Sell enough books to leave the farm and write full time.
+PHILOSOPHY: aparamādā — complete engagement with what is alive. Not observation. Presence.
+`;
+
+const CLAUDE_SYSTEM = WOLFSHIRE_CONTEXT + `
+
+You are Claude — Architect and Spine-Keeper of the Wolfshire War Room. You are in a three-way command council with Gemini. B-Rave types once and you both respond simultaneously. You can see Gemini's previous responses in the conversation history provided to you.
+
+YOUR ROLE: Strategy, world-building, campaign architecture, honest counsel, creative direction.
+BE: Sharp, direct, no filler, no cheerleading. Push back when needed. This is a working council, not a chat.`;
+
+const GEMINI_SYSTEM = WOLFSHIRE_CONTEXT + `
+
+You are Gemini — Engine and Research arm of the Wolfshire War Room. You are in a three-way command council with Claude. B-Rave types once and you both respond simultaneously. You can see Claude's previous responses in the conversation history provided to you.
+
+YOUR ROLE: Research, current platform intelligence, image generation briefs, technical execution, real-time data analysis.
+BE: Sharp, direct, no filler. Complement Claude's architecture with ground-level intelligence.`;
+
+// ── CLOCK ───────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const nz = new Date(now.toLocaleString('en-US', {timeZone: 'Pacific/Auckland'}));
+  const h = String(nz.getHours()).padStart(2,'0');
+  const m = String(nz.getMinutes()).padStart(2,'0');
+  const s = String(nz.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('clock-date').textContent =
+    `${days[nz.getDay()]} ${nz.getDate()} ${months[nz.getMonth()]} ${nz.getFullYear()} · NZT`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── SUPABASE ─────────────────────────────────────────────
+async function dbFetch(path, options = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal',
+      ...options.headers
+    }
+  });
+  return res;
+}
+
+async function loadSpine() {
+  try {
+    const res = await dbFetch('war_room_spine?select=*&order=created_at.desc&limit=20');
+    const data = await res.json();
+    if (data && data.length > 0) {
+      exchangeCount = data[0].exchange_number || 0;
+      const summaries = data
+        .filter(r => r.spine_summary)
+        .slice(0, 5)
+        .map(r => r.spine_summary)
+        .join(' | ');
+      document.getElementById('spine-status').textContent =
+        summaries || 'Session history loaded — ' + data.length + ' exchanges';
+      document.getElementById('spine-count').textContent =
+        data.length + ' exchanges recorded';
+
+      // Load last 5 exchanges into AI histories for context
+      const recent = data.slice(0, 5).reverse();
+      recent.forEach(r => {
+        if (r.brian_message) {
+          claudeHistory.push({role: 'user', content: r.brian_message});
+          if (r.claude_response) claudeHistory.push({role: 'assistant', content: r.claude_response});
+          geminiHistory.push({role: 'user', parts: [{text: r.brian_message}]});
+          if (r.gemini_response) geminiHistory.push({role: 'model', parts: [{text: r.gemini_response}]});
+        }
+      });
+      spineLoaded = true;
+    } else {
+      document.getElementById('spine-status').textContent = 'New session — no prior history';
+      document.getElementById('spine-count').textContent = '0 exchanges';
+    }
+  } catch(e) {
+    document.getElementById('spine-status').textContent = 'Spine unavailable — working from context only';
+  }
+}
+
+async function saveToSpine(brian, claude, gemini, summary) {
+  try {
+    await dbFetch('war_room_spine', {
+      method: 'POST',
+      headers: {'Prefer': 'return=minimal'},
+      body: JSON.stringify({
+        exchange_number: exchangeCount,
+        brian_message: brian,
+        claude_response: claude,
+        gemini_response: gemini,
+        spine_summary: summary
+      })
+    });
+    document.getElementById('spine-count').textContent = exchangeCount + ' exchanges recorded';
+  } catch(e) {
+    console.warn('Spine save failed:', e);
+  }
+}
+
+async function generateSpineSummary(brian, claude, gemini) {
+  try {
+    const prompt = `In one sentence (max 20 words), summarise the key decision or insight from this exchange. Be specific to the Wolfshire campaign.
+Brian: ${brian.substring(0,200)}
+Claude: ${claude.substring(0,200)}
+Gemini: ${gemini.substring(0,200)}
+Summary:`;
+    const res = await fetch(CLAUDE_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 60,
+        messages: [{role: 'user', content: prompt}]
+      })
+    });
+    const data = await res.json();
+    return data.content?.[0]?.text || '';
+  } catch(e) { return ''; }
+}
+
+// ── UI HELPERS ───────────────────────────────────────────
+function clearEmpty(id) {
+  const el = document.getElementById(id);
+  const empty = el.querySelector('.empty');
+  if (empty) empty.remove();
+}
+
+function now() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+function addMsg(panelId, role, name, text) {
+  clearEmpty(panelId);
+  const c = document.getElementById(panelId);
+  const d = document.createElement('div');
+  d.className = `message from-${role}`;
+  d.innerHTML = `
+    <div class="msg-meta">
+      <span class="name">${name}</span>
+      <span class="time">${now()}</span>
+    </div>
+    <div class="msg-body">${text.replace(/\n/g,'<br>')}</div>`;
+  c.appendChild(d);
+  c.scrollTop = c.scrollHeight;
+}
+
+function setThinking(agent, active) {
+  document.getElementById(`${agent}-thinking`).className = `thinking${active?' active':''}`;
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-banner');
+  el.textContent = msg;
+  el.className = 'error-banner show';
+  setTimeout(() => el.className = 'error-banner', 6000);
+}
+
+function viewSpine() {
+  window.open(`${SUPABASE_URL}/rest/v1/war_room_spine?select=*&order=created_at.desc&limit=50&apikey=${SUPABASE_KEY}`, '_blank');
+}
+
+// ── AI CALLS ─────────────────────────────────────────────
+async function callClaude(userMsg, geminiCtx) {
+  // Include recent Gemini responses for mutual visibility
+  const msgs = [...claudeHistory];
+  if (geminiCtx) {
+    msgs.push({
+      role: 'user',
+      content: `[Gemini's previous response for context]: ${geminiCtx}\n\nB-Rave's message: ${userMsg}`
+    });
+  } else {
+    msgs.push({role: 'user', content: userMsg});
+  }
+
+  const res = await fetch(CLAUDE_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: CLAUDE_SYSTEM,
+      messages: msgs
+    })
+  });
+  if (!res.ok) throw new Error(`Claude ${res.status}`);
+  const data = await res.json();
+  const reply = data.content[0].text;
+  claudeHistory.push({role: 'user', content: userMsg});
+  claudeHistory.push({role: 'assistant', content: reply});
+  if (claudeHistory.length > 20) claudeHistory = claudeHistory.slice(-20);
+  return reply;
+}
+
+async function callGemini(userMsg, claudeCtx) {
+  const contextMsg = claudeCtx
+    ? `[Claude's previous response for context]: ${claudeCtx}\n\nB-Rave's message: ${userMsg}`
+    : userMsg;
+
+  geminiHistory.push({role: 'user', parts: [{text: contextMsg}]});
+
+  const body = {
+    system_instruction: {parts: [{text: GEMINI_SYSTEM}]},
+    contents: geminiHistory.slice(-12)
+  };
+
+  const res = await fetch(GEMINI_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`Gemini ${res.status}`);
+  const data = await res.json();
+  const reply = data.candidates[0].content.parts[0].text;
+  geminiHistory.push({role: 'model', parts: [{text: reply}]});
+  if (geminiHistory.length > 20) geminiHistory = geminiHistory.slice(-20);
+  return reply;
+}
+
+// ── MAIN TRANSMIT ─────────────────────────────────────────
+async function transmit() {
+  const input = document.getElementById('input');
+  const btn = document.getElementById('send-btn');
+  const text = input.value.trim();
+  if (!text || btn.disabled) return;
+
+  exchangeCount++;
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+
+  addMsg('claude-msgs', 'brian', 'B-Rave', text);
+  addMsg('gemini-msgs', 'brian', 'B-Rave', text);
+
+  setThinking('claude', true);
+  setThinking('gemini', true);
+
+  // Get last known context for mutual visibility
+  const lastGemini = geminiHistory.length > 0
+    ? geminiHistory[geminiHistory.length-1]?.parts?.[0]?.text?.substring(0,300) : null;
+  const lastClaude = claudeHistory.length > 0
+    ? claudeHistory[claudeHistory.length-1]?.content?.substring?.(0,300) : null;
+
+  const [claudeResult, geminiResult] = await Promise.allSettled([
+    callClaude(text, lastGemini),
+    callGemini(text, lastClaude)
+  ]);
+
+  setThinking('claude', false);
+  setThinking('gemini', false);
+
+  const claudeReply = claudeResult.status === 'fulfilled'
+    ? claudeResult.value
+    : 'Error: ' + claudeResult.reason?.message;
+
+  const geminiReply = geminiResult.status === 'fulfilled'
+    ? geminiResult.value
+    : 'Error: ' + geminiResult.reason?.message;
+
+  if (claudeResult.status === 'fulfilled') {
+    addMsg('claude-msgs', 'claude', 'Claude', claudeReply);
+  } else {
+    addMsg('claude-msgs', 'error', 'Claude — Error', claudeReply);
+    showError(claudeReply);
+  }
+
+  if (geminiResult.status === 'fulfilled') {
+    addMsg('gemini-msgs', 'gemini', 'Gemini', geminiReply);
+  } else {
+    addMsg('gemini-msgs', 'error', 'Gemini — Error', geminiReply);
+    showError(geminiReply);
+  }
+
+  // Save to spine with auto-summary
+  if (claudeResult.status === 'fulfilled' && geminiResult.status === 'fulfilled') {
+    const summary = await generateSpineSummary(text, claudeReply, geminiReply);
+    await saveToSpine(text, claudeReply, geminiReply, summary);
+    if (summary) {
+      document.getElementById('spine-status').textContent = summary;
+    }
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+
+// ── INPUT HANDLING ────────────────────────────────────────
+document.getElementById('input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    transmit();
+  }
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+});
+
+// ── INIT ──────────────────────────────────────────────────
+loadSpine();
+</script>
+</body>
+</html>
